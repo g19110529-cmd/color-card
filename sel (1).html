@@ -1,0 +1,1183 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SEL 社會情緒視覺藝術創作坊</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <!-- Canvas to Image / html2canvas -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"Noto Sans TC"', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#f0f9ff',
+                            100: '#e0f2fe',
+                            500: '#0284c7',
+                            600: '#0369a1',
+                            700: '#075985',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background-color: #f8fafc;
+            user-select: none;
+        }
+        .canvas-container {
+            background-image: radial-gradient(#e2e8f0 1px, transparent 1px);
+            background-size: 16px 16px;
+        }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+    </style>
+</head>
+<body class="h-screen flex flex-col overflow-hidden text-slate-700">
+
+    <!-- Header Navigation -->
+    <header class="bg-white/80 backdrop-blur-md border-b border-slate-200 px-6 py-3 flex items-center justify-between shrink-0 z-20">
+        <div class="flex items-center space-x-3">
+            <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-sky-400 via-indigo-500 to-pink-400 flex items-center justify-center text-white font-bold shadow-md shadow-indigo-100">
+                <i class="fa-solid fa-shapes text-lg"></i>
+            </div>
+            <div>
+                <h1 class="font-bold text-slate-800 text-lg leading-tight">SEL 社會情緒視覺藝術創作坊</h1>
+                <p class="text-xs text-slate-500">透過平面圖形與色彩，探索與表達你的內心世界</p>
+            </div>
+        </div>
+
+        <div class="flex items-center space-x-3">
+            <button id="btn-open-sel-modal" class="px-3.5 py-1.5 text-xs font-medium text-indigo-600 bg-indigo-50 hover:bg-indigo-100 rounded-lg transition-colors flex items-center gap-1.5">
+                <i class="fa-solid fa-circle-info"></i> 什麼是 SEL？情緒顏色導覽
+            </button>
+            <button id="btn-export-card" class="px-4 py-1.5 text-xs font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg shadow-sm transition-all flex items-center gap-1.5">
+                <i class="fa-solid fa-download"></i> 導出情緒藝術卡片
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Workspace Area -->
+    <div class="flex-1 flex overflow-hidden">
+
+        <!-- Left Toolbar: Tools, Shapes, Palette -->
+        <aside class="w-80 bg-white border-r border-slate-200 flex flex-col shrink-0 z-10 shadow-sm">
+            
+            <!-- Tool Tabs -->
+            <div class="flex border-b border-slate-100 text-xs font-medium text-slate-500 bg-slate-50/50">
+                <button class="tab-btn flex-1 py-3 text-center border-b-2 border-indigo-600 text-indigo-600 font-semibold" data-tab="tab-shapes">
+                    <i class="fa-solid fa-icons mr-1"></i> 形狀與顏色
+                </button>
+                <button class="tab-btn flex-1 py-3 text-center border-b-2 border-transparent hover:text-slate-700" data-tab="tab-tools">
+                    <i class="fa-solid fa-scissors mr-1"></i> 剪刀與編輯
+                </button>
+                <button class="tab-btn flex-1 py-3 text-center border-b-2 border-transparent hover:text-slate-700" data-tab="tab-info">
+                    <i class="fa-solid fa-pen-nib mr-1"></i> 理念與命名
+                </button>
+            </div>
+
+            <!-- Tab 1: Shapes & Colors -->
+            <div id="tab-shapes" class="tab-content flex-1 overflow-y-auto p-4 space-y-5">
+                
+                <!-- Mood Presets Quick Selector -->
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-2 flex items-center justify-between">
+                        <span><i class="fa-solid fa-palette text-indigo-500 mr-1"></i> 情緒調色盤主題</span>
+                        <span id="current-palette-name" class="text-[10px] bg-slate-100 text-slate-500 px-2 py-0.5 rounded-full">平靜沉靜</span>
+                    </label>
+                    <div class="grid grid-cols-2 gap-2 text-xs">
+                        <button class="palette-btn p-2 rounded-lg border border-slate-200 hover:border-indigo-400 flex items-center gap-2 transition-all bg-sky-50/50" data-palette="calm">
+                            <span class="w-4 h-4 rounded-full bg-gradient-to-r from-sky-300 via-teal-300 to-blue-500 inline-block shadow-sm"></span>
+                            <span>平靜寧靜</span>
+                        </button>
+                        <button class="palette-btn p-2 rounded-lg border border-slate-200 hover:border-indigo-400 flex items-center gap-2 transition-all" data-palette="joy">
+                            <span class="w-4 h-4 rounded-full bg-gradient-to-r from-amber-300 via-yellow-400 to-orange-400 inline-block shadow-sm"></span>
+                            <span>喜悅活力</span>
+                        </button>
+                        <button class="palette-btn p-2 rounded-lg border border-slate-200 hover:border-indigo-400 flex items-center gap-2 transition-all" data-palette="passion">
+                            <span class="w-4 h-4 rounded-full bg-gradient-to-r from-rose-400 via-red-500 to-pink-500 inline-block shadow-sm"></span>
+                            <span>熱情憤怒</span>
+                        </button>
+                        <button class="palette-btn p-2 rounded-lg border border-slate-200 hover:border-indigo-400 flex items-center gap-2 transition-all" data-palette="reflective">
+                            <span class="w-4 h-4 rounded-full bg-gradient-to-r from-purple-400 via-indigo-400 to-violet-600 inline-block shadow-sm"></span>
+                            <span>深思焦慮</span>
+                        </button>
+                        <button class="palette-btn p-2 rounded-lg border border-slate-200 hover:border-indigo-400 flex items-center gap-2 transition-all" data-palette="grounding">
+                            <span class="w-4 h-4 rounded-full bg-gradient-to-r from-emerald-400 via-stone-400 to-amber-700 inline-block shadow-sm"></span>
+                            <span>穩固大地</span>
+                        </button>
+                        <button class="palette-btn p-2 rounded-lg border border-slate-200 hover:border-indigo-400 flex items-center gap-2 transition-all" data-palette="pastel">
+                            <span class="w-4 h-4 rounded-full bg-gradient-to-r from-pink-200 via-purple-200 to-indigo-200 inline-block shadow-sm"></span>
+                            <span>溫和療癒</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Color Swatches -->
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-2">當前挑選顏色</label>
+                    <div id="color-swatches" class="flex flex-wrap gap-2">
+                        <!-- Swatches rendered dynamically -->
+                    </div>
+                    <div class="mt-2 flex items-center gap-2">
+                        <input type="color" id="custom-color-picker" value="#3b82f6" class="w-8 h-8 rounded border border-slate-300 cursor-pointer p-0">
+                        <span class="text-xs text-slate-500">自訂顏色</span>
+                    </div>
+                </div>
+
+                <!-- Canvas Background Color -->
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-2">畫布情緒背景</label>
+                    <div class="flex items-center gap-2">
+                        <button class="bg-change-btn w-7 h-7 rounded-full border border-slate-300 bg-white shadow-sm" data-bg="#ffffff" title="純白"></button>
+                        <button class="bg-change-btn w-7 h-7 rounded-full border border-slate-300 bg-slate-900 shadow-sm" data-bg="#0f172a" title="夜空深沉"></button>
+                        <button class="bg-change-btn w-7 h-7 rounded-full border border-slate-300 bg-sky-100 shadow-sm" data-bg="#e0f2fe" title="藍天放鬆"></button>
+                        <button class="bg-change-btn w-7 h-7 rounded-full border border-slate-300 bg-amber-50 shadow-sm" data-bg="#fffbeb" title="暖陽溫馨"></button>
+                        <button class="bg-change-btn w-7 h-7 rounded-full border border-slate-300 bg-rose-50 shadow-sm" data-bg="#fff1f2" title="柔粉療癒"></button>
+                        <button class="bg-change-btn w-7 h-7 rounded-full border border-slate-300 bg-emerald-50 shadow-sm" data-bg="#ecfdf5" title="自然平息"></button>
+                    </div>
+                </div>
+
+                <!-- Shape Library -->
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-2">點擊新增幾何與線條圖形</label>
+                    <div class="grid grid-cols-4 gap-2">
+                        <button class="add-shape-btn flex flex-col items-center justify-center p-2.5 rounded-lg border border-slate-200 hover:border-indigo-500 hover:bg-indigo-50/50 transition-all group" data-shape="circle">
+                            <div class="w-6 h-6 rounded-full bg-slate-700 group-hover:scale-110 transition-transform"></div>
+                            <span class="text-[10px] mt-1 text-slate-600">圓形</span>
+                        </button>
+                        <button class="add-shape-btn flex flex-col items-center justify-center p-2.5 rounded-lg border border-slate-200 hover:border-indigo-500 hover:bg-indigo-50/50 transition-all group" data-shape="rect">
+                            <div class="w-6 h-6 rounded-md bg-slate-700 group-hover:scale-110 transition-transform"></div>
+                            <span class="text-[10px] mt-1 text-slate-600">矩形</span>
+                        </button>
+                        <button class="add-shape-btn flex flex-col items-center justify-center p-2.5 rounded-lg border border-slate-200 hover:border-indigo-500 hover:bg-indigo-50/50 transition-all group" data-shape="triangle">
+                            <div class="w-0 h-0 border-l-[12px] border-l-transparent border-r-[12px] border-r-transparent border-b-[20px] border-b-slate-700 group-hover:scale-110 transition-transform"></div>
+                            <span class="text-[10px] mt-1 text-slate-600">三角形</span>
+                        </button>
+                        <button class="add-shape-btn flex flex-col items-center justify-center p-2.5 rounded-lg border border-slate-200 hover:border-indigo-500 hover:bg-indigo-50/50 transition-all group" data-shape="star">
+                            <i class="fa-solid fa-star text-xl text-slate-700 group-hover:scale-110 transition-transform"></i>
+                            <span class="text-[10px] mt-1 text-slate-600">星形</span>
+                        </button>
+                        <button class="add-shape-btn flex flex-col items-center justify-center p-2.5 rounded-lg border border-slate-200 hover:border-indigo-500 hover:bg-indigo-50/50 transition-all group" data-shape="straightLine">
+                            <svg class="w-6 h-6 text-slate-700 group-hover:scale-110 transition-transform" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><line x1="3" y1="21" x2="21" y2="3"/></svg>
+                            <span class="text-[10px] mt-1 text-slate-600">直線</span>
+                        </button>
+                        <button class="add-shape-btn flex flex-col items-center justify-center p-2.5 rounded-lg border border-slate-200 hover:border-indigo-500 hover:bg-indigo-50/50 transition-all group" data-shape="waveLine">
+                            <svg class="w-6 h-6 text-slate-700 group-hover:scale-110 transition-transform" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M2 12Q6 4 10 12T18 12T22 12"/></svg>
+                            <span class="text-[10px] mt-1 text-slate-600">波浪線</span>
+                        </button>
+                        <button class="add-shape-btn flex flex-col items-center justify-center p-2.5 rounded-lg border border-slate-200 hover:border-indigo-500 hover:bg-indigo-50/50 transition-all group" data-shape="zigzagLine">
+                            <svg class="w-6 h-6 text-slate-700 group-hover:scale-110 transition-transform" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M2 17L7 7L12 17L17 7L22 17"/></svg>
+                            <span class="text-[10px] mt-1 text-slate-600">鋸齒線</span>
+                        </button>
+                        <button class="add-shape-btn flex flex-col items-center justify-center p-2.5 rounded-lg border border-slate-200 hover:border-indigo-500 hover:bg-indigo-50/50 transition-all group" data-shape="dashedLine">
+                            <svg class="w-6 h-6 text-slate-700 group-hover:scale-110 transition-transform" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-dasharray="4 4" stroke-linecap="round"><line x1="3" y1="20" x2="21" y2="4"/></svg>
+                            <span class="text-[10px] mt-1 text-slate-600">虛線</span>
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Tab 2: Scissors & Editing Tools -->
+            <div id="tab-tools" class="tab-content flex-1 overflow-y-auto p-4 space-y-5 hidden">
+                
+                <!-- Scissors Tool Toggle -->
+                <div class="bg-indigo-50/70 p-3.5 rounded-xl border border-indigo-100">
+                    <label class="block text-xs font-bold text-indigo-900 mb-1 flex items-center justify-between">
+                        <span><i class="fa-solid fa-scissors text-indigo-600 mr-1"></i> 剪刀切割模式</span>
+                        <span id="scissors-status" class="text-[10px] px-2 py-0.5 rounded-full bg-slate-200 text-slate-600">關閉</span>
+                    </label>
+                    <p class="text-[11px] text-slate-600 mb-3">開啟剪刀工具後，在畫布上滑動劃出一條紅色彩線，即可將碰觸到的幾何圖形裁切開來！</p>
+                    <button id="toggle-scissors-btn" class="w-full py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-medium transition-colors shadow-sm flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-scissors"></i> 切換剪刀工具 (C)
+                    </button>
+                </div>
+
+                <!-- Selected Object Quick Actions -->
+                <div id="selected-object-controls" class="space-y-3 opacity-50 pointer-events-none transition-opacity">
+                    <span class="text-xs font-bold text-slate-700 block border-b border-slate-100 pb-1">當前選取物件控制</span>
+                    
+                    <div class="grid grid-cols-2 gap-2">
+                        <button id="btn-layer-up" class="p-2 border border-slate-200 rounded-lg text-xs hover:bg-slate-50 flex items-center justify-center gap-1">
+                            <i class="fa-solid fa-layer-group text-slate-500"></i> 圖層上移
+                        </button>
+                        <button id="btn-layer-down" class="p-2 border border-slate-200 rounded-lg text-xs hover:bg-slate-50 flex items-center justify-center gap-1">
+                            <i class="fa-solid fa-layer-group text-slate-500"></i> 圖層下移
+                        </button>
+                        <button id="btn-duplicate" class="p-2 border border-slate-200 rounded-lg text-xs hover:bg-slate-50 flex items-center justify-center gap-1">
+                            <i class="fa-regular fa-copy text-slate-500"></i> 複製圖形
+                        </button>
+                        <button id="btn-delete" class="p-2 border border-red-200 text-red-600 rounded-lg text-xs hover:bg-red-50 flex items-center justify-center gap-1">
+                            <i class="fa-solid fa-trash"></i> 刪除圖形
+                        </button>
+                    </div>
+
+                    <!-- Opacity slider -->
+                    <div class="pt-2">
+                        <div class="flex justify-between text-xs text-slate-600 mb-1">
+                            <span>透明度</span>
+                            <span id="opacity-val">100%</span>
+                        </div>
+                        <input type="range" id="slider-opacity" min="0.1" max="1" step="0.05" value="1" class="w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-indigo-600">
+                    </div>
+                </div>
+
+                <!-- Canvas Global Actions -->
+                <div class="pt-4 border-t border-slate-100">
+                    <span class="text-xs font-bold text-slate-700 block mb-2">畫布全域操作</span>
+                    <button id="btn-clear-canvas" class="w-full py-2 border border-slate-300 text-slate-600 rounded-lg text-xs hover:bg-slate-100 transition-colors flex items-center justify-center gap-1.5">
+                        <i class="fa-solid fa-rotate-left"></i> 清空畫布重來
+                    </button>
+                </div>
+
+            </div>
+
+            <!-- Tab 3: Concept & Auto Title -->
+            <div id="tab-info" class="tab-content flex-1 overflow-y-auto p-4 space-y-4 hidden">
+                
+                <div>
+                    <label for="creator-name" class="block text-xs font-bold text-slate-700 mb-1">創作者姓名 / 暱稱</label>
+                    <input type="text" id="creator-name" placeholder="輸入你的名字..." class="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                </div>
+
+                <div>
+                    <div class="flex items-center justify-between mb-1">
+                        <label for="artwork-title" class="block text-xs font-bold text-slate-700">作品名稱</label>
+                        <button id="btn-auto-title" class="text-[11px] text-indigo-600 hover:text-indigo-800 font-medium flex items-center gap-1">
+                            <i class="fa-solid fa-wand-magic-sparkles"></i> 自動生成情緒名稱
+                        </button>
+                    </div>
+                    <input type="text" id="artwork-title" placeholder="如：《藍色沉思中的寧靜》" class="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 font-medium text-slate-800">
+                </div>
+
+                <div>
+                    <label for="artwork-concept" class="block text-xs font-bold text-slate-700 mb-1">創作理念與情緒省思</label>
+                    <textarea id="artwork-concept" rows="5" placeholder="這幅創作反映了你當下的什麼情緒？為什麼選擇這些形狀與顏色？剪切的線條代表了什麼樣的心境轉折？" class="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none"></textarea>
+                </div>
+
+                <div class="bg-slate-50 p-3 rounded-lg border border-slate-200 text-[11px] text-slate-500 space-y-1">
+                    <p class="font-bold text-slate-700"><i class="fa-regular fa-lightbulb text-amber-500 mr-1"></i>SEL 視覺創作提示：</p>
+                    <p>• 尖銳的角（如三角形）常傳達緊張、熱情或焦慮。</p>
+                    <p>• 圓潤的弧線（如圓形、有機形）帶來包容、安心與放鬆。</p>
+                    <p>• 剪裁動作可以代表情緒的抒發、斷捨離或是重組與重生。</p>
+                </div>
+
+            </div>
+
+        </aside>
+
+        <!-- Main Canvas Interactive Area -->
+        <main class="flex-1 relative flex flex-col items-center justify-center bg-slate-100 p-6 overflow-hidden">
+            
+            <!-- Canvas Container Wrapper -->
+            <div id="canvas-wrapper" class="relative bg-white shadow-xl rounded-2xl overflow-hidden canvas-container border border-slate-200/80 transition-colors duration-300" style="width: 720px; height: 540px;">
+                <canvas id="art-canvas" width="720" height="540" class="w-full h-full cursor-crosshair"></canvas>
+            </div>
+
+            <!-- Floating Quick Hint Bar -->
+            <div class="absolute bottom-4 left-1/2 -translate-x-1/2 bg-white/90 backdrop-blur border border-slate-200 px-4 py-2 rounded-full shadow-lg text-xs text-slate-600 flex items-center gap-4">
+                <span><i class="fa-solid fa-hand-pointer text-indigo-500 mr-1"></i>拖曳移動圖形</span>
+                <span>•</span>
+                <span><i class="fa-solid fa-scissors text-rose-500 mr-1"></i>剪刀模式點擊並劃線切割</span>
+                <span>•</span>
+                <span><i class="fa-solid fa-keyboard text-slate-400 mr-1"></i>Delete 鍵刪除圖形</span>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- SEL Learning Guide Modal -->
+    <div id="sel-modal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center hidden opacity-0 transition-opacity duration-200">
+        <div class="bg-white rounded-2xl max-w-2xl w-full mx-4 overflow-hidden shadow-2xl border border-slate-100 flex flex-col max-h-[85vh]">
+            
+            <!-- Modal Header -->
+            <div class="bg-gradient-to-r from-indigo-500 to-sky-500 px-6 py-4 text-white flex justify-between items-center">
+                <div class="flex items-center gap-2">
+                    <i class="fa-solid fa-heart-pulse text-xl"></i>
+                    <h2 class="font-bold text-base">什麼是 SEL 社會情緒學習？與視覺藝術的連結</h2>
+                </div>
+                <button id="btn-close-sel-modal" class="text-white/80 hover:text-white text-lg">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <!-- Modal Content Scrollable -->
+            <div class="p-6 overflow-y-auto space-y-6 text-xs text-slate-600 leading-relaxed">
+                
+                <section>
+                    <h3 class="text-sm font-bold text-slate-800 mb-2 border-l-4 border-indigo-500 pl-2">什麼是 SEL (Social-Emotional Learning)？</h3>
+                    <p>社會情緒學習（SEL）是一個發展自我意識、情緒管理、人際互動與明智決策的核心能力過程。包含五大關鍵能力領域：</p>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 mt-3">
+                        <div class="p-3 bg-indigo-50/50 rounded-lg border border-indigo-100">
+                            <span class="font-bold text-indigo-900 block mb-0.5">1. 自我覺察 (Self-Awareness)</span>
+                            <p class="text-[11px] text-indigo-700">辨識自己的情緒、想法與價值觀，並了解其對行為的影響。</p>
+                        </div>
+                        <div class="p-3 bg-sky-50/50 rounded-lg border border-sky-100">
+                            <span class="font-bold text-sky-900 block mb-0.5">2. 自我管理 (Self-Management)</span>
+                            <p class="text-[11px] text-sky-700">有效調節情緒、壓力和衝動，並設定達成目標。</p>
+                        </div>
+                        <div class="p-3 bg-teal-50/50 rounded-lg border border-teal-100">
+                            <span class="font-bold text-teal-900 block mb-0.5">3. 社會覺察 (Social Awareness)</span>
+                            <p class="text-[11px] text-teal-700">展現對他人的同理心，理解多元背景與觀點。</p>
+                        </div>
+                        <div class="p-3 bg-amber-50/50 rounded-lg border border-amber-100">
+                            <span class="font-bold text-amber-900 block mb-0.5">4. 人際技巧 (Relationship Skills)</span>
+                            <p class="text-[11px] text-amber-700">建立與維持健康的合作關係、清晰溝通與解決衝突。</p>
+                        </div>
+                        <div class="p-3 sm:col-span-2 bg-rose-50/50 rounded-lg border border-rose-100">
+                            <span class="font-bold text-rose-900 block mb-0.5">5. 負責任的決定 (Responsible Decision-Making)</span>
+                            <p class="text-[11px] text-rose-700">基於倫理、安全與社會標準做出建設性的選擇。</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section>
+                    <h3 class="text-sm font-bold text-slate-800 mb-2 border-l-4 border-indigo-500 pl-2">藝術創作中的「情緒色彩」與「幾何語彙」</h3>
+                    <p class="mb-2">在視覺藝術中，色彩與造型是抽象情緒的載體：</p>
+                    <ul class="space-y-1.5 list-disc list-inside bg-slate-50 p-3 rounded-lg text-slate-700">
+                        <li><strong class="text-slate-800">藍色與綠色：</strong> 傳達平靜、和諧、安全感或深沉的省思。</li>
+                        <li><strong class="text-slate-800">黃色與橘色：</strong> 展現喜悅、希望、能量與創造力。</li>
+                        <li><strong class="text-slate-800">紅色與紫紅：</strong> 象徵熱情、衝動、憤怒或強烈的渴望。</li>
+                        <li><strong class="text-slate-800">銳利圖形 (三角形/星形)：</strong> 代表能量爆發、焦慮、警覺或破裂。</li>
+                        <li><strong class="text-slate-800">圓潤圖形 (圓形/橢圓/有機形)：</strong> 代表包容、完整、柔和與安全感。</li>
+                        <li><strong class="text-slate-800">剪切動作 (Scissors Cut)：</strong> 代表情緒的轉折、破除舊有模式或重新排列生活步調。</li>
+                    </ul>
+                </section>
+
+                <section class="border-t border-slate-100 pt-3 flex justify-between items-center">
+                    <span class="text-slate-400">想深入學習更多 SEL 資源？</span>
+                    <a href="https://casel.org/" target="_blank" rel="noopener noreferrer" class="text-indigo-600 hover:underline font-medium inline-flex items-center gap-1">
+                        造訪 CASEL 官方學習資源 <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i>
+                    </a>
+                </section>
+
+            </div>
+
+            <!-- Modal Footer -->
+            <div class="bg-slate-50 px-6 py-3 border-t border-slate-100 flex justify-end">
+                <button id="btn-close-sel-modal-2" class="px-4 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-lg text-xs transition-colors">
+                    開始我的情緒藝術創作
+                </button>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Export Artwork Card Preview & Download Modal -->
+    <div id="export-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden opacity-0 transition-opacity duration-200">
+        <div class="bg-white rounded-2xl max-w-xl w-full mx-4 overflow-hidden shadow-2xl border border-slate-100 flex flex-col max-h-[90vh]">
+            
+            <div class="px-6 py-3 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+                <h2 class="font-bold text-slate-800 text-sm"><i class="fa-solid fa-square-poll-vertical text-indigo-500 mr-1.5"></i>情緒藝術展覽卡片預覽</h2>
+                <button id="btn-close-export-modal" class="text-slate-400 hover:text-slate-600">
+                    <i class="fa-solid fa-xmark text-base"></i>
+                </button>
+            </div>
+
+            <!-- Exhibition Card Render Area -->
+            <div class="p-6 overflow-y-auto flex-1 flex justify-center bg-slate-200/50">
+                
+                <div id="exhibition-card" class="bg-white rounded-xl shadow-md p-6 max-w-md w-full border border-slate-200/80 flex flex-col space-y-4">
+                    <!-- Artwork Image Preview Container -->
+                    <div id="card-art-container" class="w-full aspect-[4/3] rounded-lg overflow-hidden border border-slate-200 shadow-inner bg-slate-50 flex items-center justify-center">
+                        <img id="card-art-img" src="" alt="Artwork Preview" class="w-full h-full object-contain">
+                    </div>
+
+                    <!-- Artwork Details -->
+                    <div class="space-y-2">
+                        <h3 id="card-title" class="text-base font-bold text-slate-800 border-b border-slate-100 pb-1.5">《無題》</h3>
+                        <div class="flex items-center justify-between text-[11px] text-slate-500">
+                            <span>創作者：<strong id="card-creator" class="text-slate-700">匿名創作者</strong></span>
+                            <span id="card-date">2026/10/29</span>
+                        </div>
+                        <div class="pt-2">
+                            <span class="text-[10px] font-bold text-indigo-600 uppercase tracking-wider block mb-1">創作理念與情緒告白</span>
+                            <p id="card-concept" class="text-xs text-slate-600 leading-relaxed bg-slate-50 p-3 rounded-lg border border-slate-100 italic">
+                                （尚未填寫創作理念）
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="pt-2 border-t border-slate-100 flex justify-between items-center text-[10px] text-slate-400">
+                        <span>SEL 社會情緒視覺藝術創作作品</span>
+                        <span>情緒藝術資料庫標記 #SELArt</span>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Modal Footer Controls -->
+            <div class="p-4 bg-white border-t border-slate-100 flex justify-end gap-2">
+                <button id="btn-download-png" class="px-4 py-2 bg-slate-800 hover:bg-slate-900 text-white text-xs font-medium rounded-lg transition-colors flex items-center gap-1.5 shadow-sm">
+                    <i class="fa-regular fa-image"></i> 僅下載畫布 PNG
+                </button>
+                <button id="btn-download-card" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-medium rounded-lg transition-colors flex items-center gap-1.5 shadow-sm">
+                    <i class="fa-solid fa-file-arrow-down"></i> 下載完整展覽卡片
+                </button>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- MAIN JAVASCRIPT APP LOGIC -->
+    <script>
+        // --- Color Palettes Config ---
+        const PALETTES = {
+            calm: {
+                name: "平靜寧靜",
+                colors: ["#0284c7", "#38bdf8", "#2dd4bf", "#0d9488", "#e0f2fe", "#1e3a8a"],
+                words: ["靜謐", "微風", "深海", "沉思", "波光", "寧靜"]
+            },
+            joy: {
+                name: "喜悅活力",
+                colors: ["#f59e0b", "#fbbf24", "#f97316", "#facc15", "#fef08a", "#ea580c"],
+                words: ["陽光", "雀躍", "璀璨", "狂喜", "溫暖", "活力"]
+            },
+            passion: {
+                name: "熱情憤怒",
+                colors: ["#ef4444", "#f43f5e", "#dc2626", "#e11d48", "#fca5a5", "#881337"],
+                words: ["火焰", "吶喊", "心跳", "狂暴", "熱情", "衝動"]
+            },
+            reflective: {
+                name: "深思焦慮",
+                colors: ["#8b5cf6", "#a855f7", "#6366f1", "#4c1d95", "#ddd6fe", "#312e81"],
+                words: ["迷霧", "夜曲", "探索", "交織", "內省", "邊界"]
+            },
+            grounding: {
+                name: "穩固大地",
+                colors: ["#10b981", "#059669", "#78350f", "#b45309", "#d97706", "#064e3b"],
+                words: ["根基", "森林", "大地", "沉澱", "安穩", "生長"]
+            },
+            pastel: {
+                name: "溫和療癒",
+                colors: ["#f472b6", "#f4a261", "#e9c46a", "#2a9d8f", "#e76f51", "#c084fc"],
+                words: ["柔光", "擁抱", "許願", "輕盈", "療癒", "絮語"]
+            }
+        };
+
+        // --- Application State ---
+        let currentPaletteKey = 'calm';
+        let currentColor = PALETTES.calm.colors[0];
+        let shapes = [];
+        let selectedShapeId = null;
+        let isScissorsActive = false;
+        let isDrawingCutLine = false;
+        let cutStartPoint = null;
+        let cutEndPoint = null;
+        let nextShapeId = 1;
+        let canvasBgColor = "#ffffff";
+
+        // Dragging & Interaction State
+        let isDragging = false;
+        let dragOffset = { x: 0, y: 0 };
+
+        // --- DOM Elements ---
+        const canvas = document.getElementById('art-canvas');
+        const ctx = canvas.getContext('2d');
+        const canvasWrapper = document.getElementById('canvas-wrapper');
+        const colorSwatchesContainer = document.getElementById('color-swatches');
+        const customColorPicker = document.getElementById('custom-color-picker');
+        const scissorsStatus = document.getElementById('scissors-status');
+        const toggleScissorsBtn = document.getElementById('toggle-scissors-btn');
+        const selectedControls = document.getElementById('selected-object-controls');
+        const opacitySlider = document.getElementById('slider-opacity');
+        const opacityValLabel = document.getElementById('opacity-val');
+
+        // Modal Elements
+        const selModal = document.getElementById('sel-modal');
+        const exportModal = document.getElementById('export-modal');
+
+        // --- Color Palette & Swatches Functions ---
+        function renderSwatches() {
+            colorSwatchesContainer.innerHTML = '';
+            const palette = PALETTES[currentPaletteKey];
+            if (!palette) return;
+
+            palette.colors.forEach(color => {
+                const btn = document.createElement('button');
+                btn.className = `w-7 h-7 rounded-full border-2 border-white shadow-sm transition-transform hover:scale-110 ${color === currentColor ? 'ring-2 ring-indigo-500 scale-110' : ''}`;
+                btn.style.backgroundColor = color;
+                btn.addEventListener('click', () => {
+                    currentColor = color;
+                    if (selectedShapeId !== null) {
+                        const s = shapes.find(item => item.id === selectedShapeId);
+                        if (s) s.color = color;
+                        drawCanvas();
+                    }
+                    renderSwatches();
+                });
+                colorSwatchesContainer.appendChild(btn);
+            });
+        }
+
+        function switchPalette(key) {
+            if (!PALETTES[key]) return;
+            currentPaletteKey = key;
+            currentColor = PALETTES[key].colors[0];
+            document.getElementById('current-palette-name').innerText = PALETTES[key].name;
+            
+            document.querySelectorAll('.palette-btn').forEach(btn => {
+                if (btn.dataset.palette === key) {
+                    btn.classList.add('border-indigo-500', 'bg-indigo-50/50');
+                } else {
+                    btn.classList.remove('border-indigo-500', 'bg-indigo-50/50');
+                }
+            });
+
+            renderSwatches();
+        }
+
+        // --- Shape Collision & Scissors Cutting Math Helpers ---
+        function isPointInShape(px, py, shape) {
+            // Local coordinates
+            const dx = px - shape.x;
+            const dy = py - shape.y;
+            const rad = -(shape.rotation || 0) * Math.PI / 180;
+            const lx = dx * Math.cos(rad) - dy * Math.sin(rad);
+            const ly = dx * Math.sin(rad) + dy * Math.cos(rad);
+
+            const b = getShapeBoundsLocal(shape);
+            return lx >= b.minX && lx <= b.maxX && ly >= b.minY && ly <= b.maxY;
+        }
+
+        function drawStar(ctx, cx, cy, spikes, outerRadius, innerRadius) {
+            let rot = Math.PI / 2 * 3;
+            let x = cx;
+            let y = cy;
+            const step = Math.PI / spikes;
+
+            ctx.beginPath();
+            ctx.moveTo(cx, cy - outerRadius);
+            for (let i = 0; i < spikes; i++) {
+                x = cx + Math.cos(rot) * outerRadius;
+                y = cy + Math.sin(rot) * outerRadius;
+                ctx.lineTo(x, y);
+                rot += step;
+
+                x = cx + Math.cos(rot) * innerRadius;
+                y = cy + Math.sin(rot) * innerRadius;
+                ctx.lineTo(x, y);
+                rot += step;
+            }
+            ctx.lineTo(cx, cy - outerRadius);
+            ctx.closePath();
+        }
+
+        function executeScissorsCut(p1, p2) {
+            if (!p1 || !p2) return;
+            
+            // Check each shape if the cut line intersects its center region and split into pieces
+            const newShapes = [];
+            shapes.forEach(shape => {
+                const distToCenter = lineToPointDistance(p1, p2, { x: shape.x, y: shape.y });
+                const shapeSize = shape.radius || Math.max(shape.width || 80, shape.height || 80) / 2;
+
+                if (distToCenter < shapeSize) {
+                    // Split geometry in 2 offset halves
+                    const cutAngle = Math.atan2(p2.y - p1.y, p2.x - p1.x);
+                    const offsetMag = 16;
+                    const nx = Math.cos(cutAngle + Math.PI / 2) * offsetMag;
+                    const ny = Math.sin(cutAngle + Math.PI / 2) * offsetMag;
+
+                    // Piece 1
+                    const piece1 = JSON.parse(JSON.stringify(shape));
+                    piece1.id = nextShapeId++;
+                    piece1.x += nx;
+                    piece1.y += ny;
+
+                    // Piece 2
+                    const piece2 = JSON.parse(JSON.stringify(shape));
+                    piece2.id = nextShapeId++;
+                    piece2.x -= nx;
+                    piece2.y -= ny;
+
+                    if (piece1.type === 'circle') {
+                        piece1.type = 'triangle';
+                        piece2.type = 'triangle';
+                    }
+
+                    newShapes.push(piece1, piece2);
+                } else {
+                    newShapes.push(shape);
+                }
+            });
+
+            shapes = newShapes;
+        }
+
+        function lineToPointDistance(p1, p2, pt) {
+            const A = pt.x - p1.x;
+            const B = pt.y - p1.y;
+            const C = p2.x - p1.x;
+            const D = p2.y - p1.y;
+
+            const dot = A * C + B * D;
+            const lenSq = C * C + D * D;
+            let param = -1;
+
+            if (lenSq !== 0) param = dot / lenSq;
+
+            let xx, yy;
+
+            if (param < 0) {
+                xx = p1.x;
+                yy = p1.y;
+            } else if (param > 1) {
+                xx = p2.x;
+                yy = p2.y;
+            } else {
+                xx = p1.x + param * C;
+                yy = p1.y + param * D;
+            }
+
+            const dx = pt.x - xx;
+            const dy = pt.y - yy;
+            return Math.sqrt(dx * dx + dy * dy);
+        }
+
+        // --- Core Shape & Action Functions ---
+        function getShapeBoundsLocal(shape) {
+            const w = shape.width || (shape.radius ? shape.radius * 2 : 80);
+            const h = shape.height || (shape.radius ? shape.radius * 2 : 80);
+            return {
+                minX: -w / 2,
+                maxX: w / 2,
+                minY: -h / 2,
+                maxY: h / 2
+            };
+        }
+
+        function toggleScissors() {
+            isScissorsActive = !isScissorsActive;
+            if (isScissorsActive) {
+                scissorsStatus.innerText = "開啟中";
+                scissorsStatus.className = "text-[10px] px-2 py-0.5 rounded-full bg-rose-500 text-white font-bold animate-pulse";
+                toggleScissorsBtn.classList.replace('bg-indigo-600', 'bg-rose-600');
+                toggleScissorsBtn.classList.replace('hover:bg-indigo-700', 'hover:bg-rose-700');
+                canvas.style.cursor = 'crosshair';
+                selectedShapeId = null;
+                updateSelectedControlState();
+            } else {
+                scissorsStatus.innerText = "關閉";
+                scissorsStatus.className = "text-[10px] px-2 py-0.5 rounded-full bg-slate-200 text-slate-600";
+                toggleScissorsBtn.classList.replace('bg-rose-600', 'bg-indigo-600');
+                toggleScissorsBtn.classList.replace('hover:bg-rose-700', 'hover:bg-indigo-700');
+                canvas.style.cursor = 'default';
+            }
+            drawCanvas();
+        }
+
+        function addNewShape(type) {
+            const id = nextShapeId++;
+            const cx = canvas.width / 2 + (Math.random() * 60 - 30);
+            const cy = canvas.height / 2 + (Math.random() * 60 - 30);
+
+            let newShape = {
+                id,
+                type,
+                x: cx,
+                y: cy,
+                color: currentColor,
+                opacity: 0.9,
+                rotation: 0
+            };
+
+            if (type === 'circle') {
+                newShape.radius = 45;
+            } else if (type === 'rect') {
+                newShape.width = 90;
+                newShape.height = 90;
+            } else if (type === 'triangle') {
+                newShape.width = 90;
+                newShape.height = 90;
+            } else if (type === 'star') {
+                newShape.radius = 45;
+            } else if (['straightLine', 'waveLine', 'zigzagLine', 'dashedLine'].includes(type)) {
+                newShape.width = 140;
+                newShape.height = 30;
+                newShape.lineWidth = 6;
+            }
+
+            shapes.push(newShape);
+            selectedShapeId = id;
+            updateSelectedControlState();
+            drawCanvas();
+        }
+
+        function updateSelectedControlState() {
+            if (selectedShapeId !== null) {
+                selectedControls.classList.remove('opacity-50', 'pointer-events-none');
+                const s = shapes.find(item => item.id === selectedShapeId);
+                if (s) {
+                    opacitySlider.value = s.opacity || 1;
+                    opacityValLabel.innerText = `${Math.round((s.opacity || 1) * 100)}%`;
+                }
+            } else {
+                selectedControls.classList.add('opacity-50', 'pointer-events-none');
+            }
+        }
+
+        function moveLayerUp() {
+            if (selectedShapeId === null) return;
+            const idx = shapes.findIndex(s => s.id === selectedShapeId);
+            if (idx < shapes.length - 1) {
+                const temp = shapes[idx];
+                shapes[idx] = shapes[idx + 1];
+                shapes[idx + 1] = temp;
+                drawCanvas();
+            }
+        }
+
+        function moveLayerDown() {
+            if (selectedShapeId === null) return;
+            const idx = shapes.findIndex(s => s.id === selectedShapeId);
+            if (idx > 0) {
+                const temp = shapes[idx];
+                shapes[idx] = shapes[idx - 1];
+                shapes[idx - 1] = temp;
+                drawCanvas();
+            }
+        }
+
+        function duplicateSelectedShape() {
+            if (selectedShapeId === null) return;
+            const s = shapes.find(item => item.id === selectedShapeId);
+            if (s) {
+                const dup = JSON.parse(JSON.stringify(s));
+                dup.id = nextShapeId++;
+                dup.x += 20;
+                dup.y += 20;
+                shapes.push(dup);
+                selectedShapeId = dup.id;
+                updateSelectedControlState();
+                drawCanvas();
+            }
+        }
+
+        function deleteSelectedShape() {
+            if (selectedShapeId === null) return;
+            shapes = shapes.filter(s => s.id !== selectedShapeId);
+            selectedShapeId = null;
+            updateSelectedControlState();
+            drawCanvas();
+        }
+
+        function clearCanvas() {
+            shapes = [];
+            selectedShapeId = null;
+            updateSelectedControlState();
+            drawCanvas();
+        }
+
+        function generateAutoTitle() {
+            const palette = PALETTES[currentPaletteKey];
+            const words = palette ? palette.words : ["和諧", "思考", "流動"];
+            const w1 = words[Math.floor(Math.random() * words.length)];
+            const w2 = words[Math.floor(Math.random() * words.length)];
+
+            const structures = [
+                `《${w1}與${w2}的交響曲》`,
+                `《內心的${w1}邊界》`,
+                `《${w1}時光的流逝》`,
+                `《撕裂與${w2}重構》`,
+                `《${palette.name}的平靜省思》`
+            ];
+
+            const generated = structures[Math.floor(Math.random() * structures.length)];
+            document.getElementById('artwork-title').value = generated;
+        }
+
+        // --- Mouse / Touch Coordinates ---
+        function getCanvasCoords(e) {
+            const rect = canvas.getBoundingClientRect();
+            return {
+                x: (e.clientX - rect.left) * (canvas.width / rect.width),
+                y: (e.clientY - rect.top) * (canvas.height / rect.height)
+            };
+        }
+
+        function onCanvasMouseDown(e) {
+            const pos = getCanvasCoords(e);
+
+            if (isScissorsActive) {
+                isDrawingCutLine = true;
+                cutStartPoint = pos;
+                cutEndPoint = pos;
+                return;
+            }
+
+            // Reverse iterate to pick top element
+            let foundId = null;
+            for (let i = shapes.length - 1; i >= 0; i--) {
+                if (isPointInShape(pos.x, pos.y, shapes[i])) {
+                    foundId = shapes[i].id;
+                    break;
+                }
+            }
+
+            selectedShapeId = foundId;
+            updateSelectedControlState();
+
+            if (foundId !== null) {
+                isDragging = true;
+                const s = shapes.find(item => item.id === foundId);
+                dragOffset = { x: pos.x - s.x, y: pos.y - s.y };
+            }
+
+            drawCanvas();
+        }
+
+        function onCanvasMouseMove(e) {
+            const pos = getCanvasCoords(e);
+
+            if (isScissorsActive && isDrawingCutLine) {
+                cutEndPoint = pos;
+                drawCanvas();
+                return;
+            }
+
+            if (isDragging && selectedShapeId !== null) {
+                const s = shapes.find(item => item.id === selectedShapeId);
+                if (s) {
+                    s.x = pos.x - dragOffset.x;
+                    s.y = pos.y - dragOffset.y;
+                    drawCanvas();
+                }
+            }
+        }
+
+        function onCanvasMouseUp(e) {
+            if (isScissorsActive && isDrawingCutLine) {
+                isDrawingCutLine = false;
+                if (cutStartPoint && cutEndPoint) {
+                    executeScissorsCut(cutStartPoint, cutEndPoint);
+                }
+                cutStartPoint = null;
+                cutEndPoint = null;
+                drawCanvas();
+            }
+            isDragging = false;
+        }
+
+        // --- Render Engine ---
+        function drawCanvas() {
+            // Fill background
+            ctx.fillStyle = canvasBgColor;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Draw all shapes
+            shapes.forEach(shape => {
+                ctx.save();
+                ctx.translate(shape.x, shape.y);
+                ctx.rotate((shape.rotation || 0) * Math.PI / 180);
+                ctx.globalAlpha = shape.opacity || 1;
+                ctx.fillStyle = shape.color;
+                ctx.strokeStyle = shape.color;
+                ctx.lineWidth = shape.lineWidth || 4;
+
+                const isSelected = shape.id === selectedShapeId;
+
+                switch (shape.type) {
+                    case 'circle':
+                        ctx.beginPath();
+                        ctx.arc(0, 0, shape.radius || 40, 0, Math.PI * 2);
+                        ctx.fill();
+                        break;
+                    case 'rect':
+                        ctx.fillRect(-shape.width / 2, -shape.height / 2, shape.width, shape.height);
+                        break;
+                    case 'triangle':
+                        ctx.beginPath();
+                        ctx.moveTo(0, -shape.height / 2);
+                        ctx.lineTo(shape.width / 2, shape.height / 2);
+                        ctx.lineTo(-shape.width / 2, shape.height / 2);
+                        ctx.closePath();
+                        ctx.fill();
+                        break;
+                    case 'star':
+                        drawStar(ctx, 0, 0, 5, shape.radius || 40, (shape.radius || 40) / 2);
+                        ctx.fill();
+                        break;
+                    case 'straightLine':
+                        ctx.beginPath();
+                        ctx.moveTo(-shape.width / 2, 0);
+                        ctx.lineTo(shape.width / 2, 0);
+                        ctx.stroke();
+                        break;
+                    case 'waveLine':
+                        ctx.beginPath();
+                        ctx.moveTo(-shape.width / 2, 0);
+                        ctx.quadraticCurveTo(-shape.width / 4, -20, 0, 0);
+                        ctx.quadraticCurveTo(shape.width / 4, 20, shape.width / 2, 0);
+                        ctx.stroke();
+                        break;
+                    case 'zigzagLine':
+                        ctx.beginPath();
+                        const w = shape.width;
+                        ctx.moveTo(-w / 2, 0);
+                        ctx.lineTo(-w / 3, -15);
+                        ctx.lineTo(-w / 6, 15);
+                        ctx.lineTo(0, -15);
+                        ctx.lineTo(w / 6, 15);
+                        ctx.lineTo(w / 3, -15);
+                        ctx.lineTo(w / 2, 0);
+                        ctx.stroke();
+                        break;
+                    case 'dashedLine':
+                        ctx.save();
+                        ctx.setLineDash([8, 6]);
+                        ctx.beginPath();
+                        ctx.moveTo(-shape.width / 2, 0);
+                        ctx.lineTo(shape.width / 2, 0);
+                        ctx.stroke();
+                        ctx.restore();
+                        break;
+                }
+
+                // Selection Box
+                if (isSelected && !isScissorsActive) {
+                    const b = getShapeBoundsLocal(shape);
+                    ctx.strokeStyle = '#6366f1';
+                    ctx.lineWidth = 1.5;
+                    ctx.setLineDash([4, 4]);
+                    ctx.strokeRect(b.minX - 6, b.minY - 6, (b.maxX - b.minX) + 12, (b.maxY - b.minY) + 12);
+                }
+
+                ctx.restore();
+            });
+
+            // Draw scissors active cut line
+            if (isScissorsActive && isDrawingCutLine && cutStartPoint && cutEndPoint) {
+                ctx.save();
+                ctx.strokeStyle = '#ef4444';
+                ctx.lineWidth = 2.5;
+                ctx.setLineDash([6, 4]);
+                ctx.beginPath();
+                ctx.moveTo(cutStartPoint.x, cutStartPoint.y);
+                ctx.lineTo(cutEndPoint.x, cutEndPoint.y);
+                ctx.stroke();
+                ctx.restore();
+            }
+        }
+
+        function initDefaultArt() {
+            shapes = [
+                { id: nextShapeId++, type: 'circle', x: 260, y: 270, radius: 80, color: '#0284c7', opacity: 0.85, rotation: 0 },
+                { id: nextShapeId++, type: 'waveLine', x: 380, y: 220, width: 220, height: 40, lineWidth: 8, color: '#38bdf8', opacity: 0.9, rotation: -15 },
+                { id: nextShapeId++, type: 'triangle', x: 460, y: 320, width: 120, height: 110, color: '#2dd4bf', opacity: 0.75, rotation: 25 }
+            ];
+        }
+
+        // --- Modal Helpers & Downloads ---
+        function openModal(m) {
+            m.classList.remove('hidden');
+            setTimeout(() => m.classList.remove('opacity-0'), 10);
+        }
+
+        function closeModal(m) {
+            m.classList.add('opacity-0');
+            setTimeout(() => m.classList.add('hidden'), 200);
+        }
+
+        function prepareAndOpenExportModal() {
+            const dataUrl = canvas.toDataURL('image/png');
+            document.getElementById('card-art-img').src = dataUrl;
+
+            const title = document.getElementById('artwork-title').value.trim() || "《無題情緒流動》";
+            const creator = document.getElementById('creator-name').value.trim() || "匿名創作者";
+            const concept = document.getElementById('artwork-concept').value.trim() || "「在這個作品中，我透過圖形的疊加與裁剪，表達內心細緻的情緒起伏。」";
+
+            document.getElementById('card-title').innerText = title;
+            document.getElementById('card-creator').innerText = creator;
+            document.getElementById('card-concept').innerText = concept;
+            document.getElementById('card-date').innerText = new Date().toLocaleDateString('zh-TW');
+
+            openModal(exportModal);
+        }
+
+        function downloadCanvasPNG() {
+            const link = document.createElement('a');
+            link.download = `SEL-Artwork-${Date.now()}.png`;
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+        }
+
+        function downloadFullExhibitionCard() {
+            const cardElem = document.getElementById('exhibition-card');
+            html2canvas(cardElem, { scale: 2 }).then(canvasRes => {
+                const link = document.createElement('a');
+                link.download = `SEL-Exhibition-Card-${Date.now()}.png`;
+                link.href = canvasRes.toDataURL('image/png');
+                link.click();
+            });
+        }
+
+        function setupEventListeners() {
+            // Tab switching
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    document.querySelectorAll('.tab-btn').forEach(b => {
+                        b.classList.remove('border-indigo-600', 'text-indigo-600', 'font-semibold');
+                        b.classList.add('border-transparent');
+                    });
+                    document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
+
+                    const targetTab = e.currentTarget.dataset.tab;
+                    e.currentTarget.classList.add('border-indigo-600', 'text-indigo-600', 'font-semibold');
+                    e.currentTarget.classList.remove('border-transparent');
+                    document.getElementById(targetTab).classList.remove('hidden');
+                });
+            });
+
+            // Palette Buttons
+            document.querySelectorAll('.palette-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const paletteKey = e.currentTarget.dataset.palette;
+                    switchPalette(paletteKey);
+                });
+            });
+
+            // Custom Color Picker
+            customColorPicker.addEventListener('input', (e) => {
+                currentColor = e.target.value;
+                if (selectedShapeId !== null) {
+                    const s = shapes.find(item => item.id === selectedShapeId);
+                    if (s) s.color = currentColor;
+                    drawCanvas();
+                }
+            });
+
+            // Background Color Changers
+            document.querySelectorAll('.bg-change-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    canvasBgColor = e.currentTarget.dataset.bg;
+                    drawCanvas();
+                });
+            });
+
+            // Add Shape Buttons
+            document.querySelectorAll('.add-shape-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const shapeType = e.currentTarget.dataset.shape;
+                    addNewShape(shapeType);
+                });
+            });
+
+            // Scissors Tool
+            toggleScissorsBtn.addEventListener('click', toggleScissors);
+
+            // Layer & Object Controls
+            document.getElementById('btn-layer-up').addEventListener('click', moveLayerUp);
+            document.getElementById('btn-layer-down').addEventListener('click', moveLayerDown);
+            document.getElementById('btn-duplicate').addEventListener('click', duplicateSelectedShape);
+            document.getElementById('btn-delete').addEventListener('click', deleteSelectedShape);
+            document.getElementById('btn-clear-canvas').addEventListener('click', clearCanvas);
+
+            // Opacity Slider
+            opacitySlider.addEventListener('input', (e) => {
+                if (selectedShapeId !== null) {
+                    const s = shapes.find(item => item.id === selectedShapeId);
+                    if (s) {
+                        s.opacity = parseFloat(e.target.value);
+                        opacityValLabel.innerText = `${Math.round(s.opacity * 100)}%`;
+                        drawCanvas();
+                    }
+                }
+            });
+
+            // Auto Naming Button
+            document.getElementById('btn-auto-title').addEventListener('click', generateAutoTitle);
+
+            // Canvas Mouse Events
+            canvas.addEventListener('mousedown', onCanvasMouseDown);
+            canvas.addEventListener('mousemove', onCanvasMouseMove);
+            canvas.addEventListener('mouseup', onCanvasMouseUp);
+            canvas.addEventListener('mouseleave', () => {
+                isDragging = false;
+                if (isScissorsActive && isDrawingCutLine) {
+                    isDrawingCutLine = false;
+                    cutStartPoint = null;
+                    cutEndPoint = null;
+                    drawCanvas();
+                }
+            });
+
+            // Touch device events
+            canvas.addEventListener('touchstart', (e) => {
+                if (e.touches.length === 1) {
+                    e.preventDefault();
+                    const touch = e.touches[0];
+                    onCanvasMouseDown({ clientX: touch.clientX, clientY: touch.clientY });
+                }
+            });
+            canvas.addEventListener('touchmove', (e) => {
+                if (e.touches.length === 1) {
+                    e.preventDefault();
+                    const touch = e.touches[0];
+                    onCanvasMouseMove({ clientX: touch.clientX, clientY: touch.clientY });
+                }
+            });
+            canvas.addEventListener('touchend', (e) => {
+                e.preventDefault();
+                onCanvasMouseUp(e);
+            });
+
+            // Modals
+            document.getElementById('btn-open-sel-modal').addEventListener('click', () => openModal(selModal));
+            document.getElementById('btn-close-sel-modal').addEventListener('click', () => closeModal(selModal));
+            document.getElementById('btn-close-sel-modal-2').addEventListener('click', () => closeModal(selModal));
+            
+            document.getElementById('btn-export-card').addEventListener('click', prepareAndOpenExportModal);
+            document.getElementById('btn-close-export-modal').addEventListener('click', () => closeModal(exportModal));
+
+            document.getElementById('btn-download-png').addEventListener('click', downloadCanvasPNG);
+            document.getElementById('btn-download-card').addEventListener('click', downloadFullExhibitionCard);
+
+            // Keyboard Shortcuts
+            window.addEventListener('keydown', (e) => {
+                if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+                if (e.key === 'Delete' || e.key === 'Backspace') {
+                    deleteSelectedShape();
+                } else if (e.key === 'c' || e.key === 'C') {
+                    toggleScissors();
+                }
+            });
+        }
+
+        // --- Initialize App ---
+        window.addEventListener('load', () => {
+            renderSwatches();
+            setupEventListeners();
+            initDefaultArt();
+            drawCanvas();
+        });
+    </script>
+</body>
+</html>
